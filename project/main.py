@@ -1,6 +1,31 @@
 import pygame
 
 
+class CheckedField:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.board = [[0] * width for _ in range(height)]
+        self.left = 2
+        self.top = 2
+        self.cell_size = 100
+
+    def set_view(self, left, top, cell_size):
+        global screen
+        self.left = left
+        self.top = top
+        self.cell_size = cell_size
+        self.render(screen)
+
+    def render(self, screen):
+        for y in range(self.height):
+            for x in range(self.width):
+                pygame.draw.rect(screen, (255, 229, 180),
+                                 (self.left * (x + 1) + self.cell_size * x,
+                                  self.top * (y + 1) + self.cell_size * y,
+                                  self.cell_size, self.cell_size))
+
+
 def main_screen():
     tutor = ['"W": to move up;', '"S": to move down;', '"A": to move left;',
              '"D": to move right', 'Press "Space" to start']
@@ -41,6 +66,8 @@ if __name__ == '__main__':
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    pass
+                    screen.fill((100, 100, 100))
+                    field = CheckedField(width, height)
+                    field.render(screen)
         clock.tick(60)
         pygame.display.flip()
