@@ -1,10 +1,26 @@
 import pygame
+import random
 
 # Задаём необходимые константы
 CELLS_COUNT = 4
 CELL_SIZE = 100
-MARGIN = 2
-WIDTH, HEIGHT = 410, 410
+MARGIN = 5
+WIDTH, HEIGHT = 425, 425
+
+# Константы цветов
+COLORS = {2: (238, 228, 218),
+          4: (237, 224, 200),
+          8: (242, 177, 121),
+          16: (245, 149, 99),
+          32: (246, 124, 95),
+          64: (246, 94, 59),
+          128: (237, 207, 114),
+          256: (237, 204, 97),
+          512: (237, 200, 80),
+          1024: (237, 197, 63),
+          2048: (237, 194, 46)}
+
+SCREEN_COLOR = (215, 189, 140)
 
 # Это наше поле в виде списка
 mapa = [[0, 0, 0, 0],
@@ -13,26 +29,32 @@ mapa = [[0, 0, 0, 0],
         [0, 0, 0, 0]]
 
 
-# Это наше клетчатое поле, в котором всё будет происходить
-class CheckedField:
+# Функция для отрисовки поля
+def render(screen):
+    for i in range(HEIGHT):
+        for j in range(WIDTH):
 
-    # Инициализируем наше поле
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.board = [[0] * width for _ in range(height)]
-        self.cell_size = 100
+            # Отрисовываем наши клеточки
+            pygame.draw.rect(screen, (170, 170, 170),
+                             (MARGIN * (j + 1) + CELL_SIZE * j,
+                              MARGIN * (i + 1) + CELL_SIZE * i,
+                              CELL_SIZE, CELL_SIZE))
 
-    # Отрисовываем поле
-    def render(self, screen):
-        for y in range(self.height):
-            for x in range(self.width):
 
-                # Отрисовываем наши клеточки
-                pygame.draw.rect(screen, (255, 229, 180),
-                                 (MARGIN * (x + 1) + self.cell_size * x,
-                                  MARGIN * (y + 1) + self.cell_size * y,
-                                  self.cell_size, self.cell_size))
+# Функция для заливки наших клеточек цветом и записи чисел
+def filling_cells(screen, mapa, x, y, place):
+
+    # Закрашиваем клеточки
+    if cell_number(x, y) not in place:
+        pygame.draw.rect(screen, COLORS.get(mapa[x][y]),
+                         (MARGIN * (y + 1) + CELL_SIZE * y,
+                          MARGIN * (x + 1) + CELL_SIZE * x,
+                          CELL_SIZE, CELL_SIZE))
+    else:
+        pygame.draw.rect(screen, (170, 170, 170),
+                         (MARGIN * (y + 1) + CELL_SIZE * y,
+                          MARGIN * (x + 1) + CELL_SIZE * x,
+                          CELL_SIZE, CELL_SIZE))
 
 
 # Функции для болеее удобного вывода в консоль:
@@ -59,6 +81,19 @@ def get_free_place(mapa):
 def cell_number(x, y):
     return x * 4 + y + 1
 
+
+def cell_index(num):
+    num -= 1
+    x, y = num // 4, num % 4
+    return x, y
+
+
+def getting_start_nums(mapa, x, y):
+    val = random.choice([2, 2, 2, 2, 2, 2, 2, 4, 4, 4])
+    mapa[x][y] = val
+    return mapa
+
+
 # Эта функция отвечает за стартовый экран,
 # где будет написано привествие и обучение
 def main_screen():
@@ -68,7 +103,7 @@ def main_screen():
              '"D": to move right', 'Press "Space" to start']
 
     # Заливаем эран, задаём шрифт и здороваемся
-    screen.fill((255, 229, 180))
+    screen.fill(SCREEN_COLOR)
     font = pygame.font.Font(None, 50)
     text = font.render("Welcome to 2048", True, (0, 0, 0))
     text_x = WIDTH // 2 - text.get_width() // 2
@@ -92,7 +127,7 @@ def main_screen():
             screen.blit(text1, (text_x1, text_y1 + 30))
 
 
-if __name__ == '__main__':\
+if __name__ == '__main__':
 
     # Инициализируем пайгейм, создаём окно и пишем заголовок
     pygame.init()
@@ -117,26 +152,48 @@ if __name__ == '__main__':\
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
+                if not started:
+
+                    # Отрисовываем наше поле
+                    screen.fill(SCREEN_COLOR)
+                    render(screen)
                 if event.key == pygame.K_SPACE:
-                    screen.fill((100, 100, 100))
-                    field = CheckedField(WIDTH, HEIGHT)
-                    field.render(screen)
-                    started = True if started is None or False else False
+                    started = True
                 if started:
 
-                    # Для удобства изначально я выводил всё в консоль,
-                    # Это останется, чтобы искать ошибки
-                    if event.key == pygame.K_w:
-                        pprint(mapa)
-                        print(get_free_place(mapa))
-                    elif event.key == pygame.K_s:
-                        pprint(mapa)
-                        print(get_free_place(mapa))
-                    elif event.key == pygame.K_a:
-                        pprint(mapa)
-                        print(get_free_place(mapa))
-                    elif event.key == pygame.K_d:
-                        pprint(mapa)
-                        print(get_free_place(mapa))
+                    # Узнаём, какие клеки пустые
+                    place = get_free_place(mapa)
+
+                    # Перемешиваем информацию в place,
+                    # чтобы числа появлялись на рандомных местах
+                    random.shuffle(place)
+
+                    # Присваиваем переменной рандомное число и
+                    # удаляем этот порядковый номер из свободного места
+                    rand_num = place.pop()
+
+                    # Находим индекс в нашел списке,
+                    # по которому будет располагаться наше число
+                    x, y = cell_index(rand_num)
+
+                    # Помещаем наше число на поле
+                    mapa = getting_start_nums(mapa, x, y)
+                    pprint(mapa)
+
+                    filling_cells(screen, mapa, x, y, place)
+                # Для удобства изначально я выводил всё в консоль,
+                # Это останется, чтобы искать ошибки
+                if event.key == pygame.K_w:
+                    pprint(mapa)
+                    print(get_free_place(mapa))
+                elif event.key == pygame.K_s:
+                    pprint(mapa)
+                    print(get_free_place(mapa))
+                elif event.key == pygame.K_a:
+                    pprint(mapa)
+                    print(get_free_place(mapa))
+                elif event.key == pygame.K_d:
+                    pprint(mapa)
+                    print(get_free_place(mapa))
         clock.tick(60)
         pygame.display.flip()
