@@ -44,12 +44,18 @@ def render(screen):
 # Функция для заливки наших клеточек цветом и записи чисел
 def filling_cells(screen, mapa, x, y, place):
 
-    # Закрашиваем клеточки
+    # Закрашиваем клеточки и записываем числа
     if cell_number(x, y) not in place:
         pygame.draw.rect(screen, COLORS.get(mapa[x][y]),
                          (MARGIN * (y + 1) + CELL_SIZE * y,
                           MARGIN * (x + 1) + CELL_SIZE * x,
                           CELL_SIZE, CELL_SIZE))
+        font = pygame.font.Font(None, 40)
+        text = font.render(f'{mapa[x][y]}', True, (0, 0, 0))
+        text_x = MARGIN * (x + 1) + CELL_SIZE * x
+        text_y = MARGIN * (y + 1) + CELL_SIZE * y
+        screen.blit(text, (text_y, text_x))
+
     else:
         pygame.draw.rect(screen, (170, 170, 170),
                          (MARGIN * (y + 1) + CELL_SIZE * y,
@@ -57,8 +63,8 @@ def filling_cells(screen, mapa, x, y, place):
                           CELL_SIZE, CELL_SIZE))
 
 
-# Функции для болеее удобного вывода в консоль:
-# Эта - выводит состояние карты
+# Функции для болеее удобного вывода в консоль и дальнейшей работы:
+# Эта - выводит состояние поля
 def pprint(mapa):
     print('-' * 10)
     for line in mapa:
@@ -71,7 +77,11 @@ def get_free_place(mapa):
     place = []
     for x in range(CELLS_COUNT):
         for y in range(CELLS_COUNT):
+
+            # Проверяем по индексу, равен ли элемент нулю
             if mapa[x][y] == 0:
+
+                # Присваиваем клетке номер (по-человечески)
                 number = cell_number(x, y)
                 place.append(number)
     return place
@@ -82,15 +92,51 @@ def cell_number(x, y):
     return x * 4 + y + 1
 
 
+# Функция для нахождения индекса клетки по номеру
+# Формула выведена из cell_number()
+
 def cell_index(num):
     num -= 1
     x, y = num // 4, num % 4
     return x, y
 
 
-def getting_start_nums(mapa, x, y):
+# Функция для появления на поле новых чисел
+def filling_with_nums(mapa, x, y):
+
+    # Выбираем рандомное число, которое будет помещено на поле
     val = random.choice([2, 2, 2, 2, 2, 2, 2, 4, 4, 4])
+
+    # Помещаем наше число на поле по индексу
     mapa[x][y] = val
+    return mapa
+
+
+# Функция для сдвига всего влево
+def move_left(mapa):
+
+    # Проверяем каждый символ в строке на то, является ли он нулём
+    for line in mapa:
+
+        # Удаляем все нуля
+        while 0 in line:
+            line.remove(0)
+
+        # Сдвинув всё влево, мы добавляем в конец нули при необходимости
+        while len(line) != 4:
+            line.append(0)
+
+    # Проверяем находящиеся рядом элемента на схожесть
+    for i in range(4):
+        for j in range(3):
+            if mapa[i][j] == mapa[i][j + 1] and mapa[i][j] != 0:
+
+                # Складываем элементы и удаляем второй из них, чтобы освободить место
+                mapa[i][j] *= 2
+                del mapa[i][j + 1]
+
+                # Добавляем ноль, чтобы заполнить строку
+                mapa[i].append(0)
     return mapa
 
 
@@ -177,23 +223,20 @@ if __name__ == '__main__':
                     x, y = cell_index(rand_num)
 
                     # Помещаем наше число на поле
-                    mapa = getting_start_nums(mapa, x, y)
+                    mapa = filling_with_nums(mapa, x, y)
                     pprint(mapa)
 
+                    # Обновляем поле
                     filling_cells(screen, mapa, x, y, place)
                 # Для удобства изначально я выводил всё в консоль,
                 # Это останется, чтобы искать ошибки
                 if event.key == pygame.K_w:
-                    pprint(mapa)
-                    print(get_free_place(mapa))
+                    pass
                 elif event.key == pygame.K_s:
-                    pprint(mapa)
-                    print(get_free_place(mapa))
+                    pass
                 elif event.key == pygame.K_a:
-                    pprint(mapa)
-                    print(get_free_place(mapa))
+                    mapa = move_left(mapa)
                 elif event.key == pygame.K_d:
-                    pprint(mapa)
-                    print(get_free_place(mapa))
+                    pass
         clock.tick(60)
         pygame.display.flip()
