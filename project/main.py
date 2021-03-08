@@ -8,7 +8,8 @@ MARGIN = 5
 WIDTH, HEIGHT = 425, 425
 
 # Константы цветов
-COLORS = {2: (238, 228, 218),
+COLORS = {0: (170, 170, 170),
+          2: (238, 228, 218),
           4: (237, 224, 200),
           8: (242, 177, 121),
           16: (245, 149, 99),
@@ -31,36 +32,18 @@ mapa = [[0, 0, 0, 0],
 
 # Функция для отрисовки поля
 def render(screen):
-    for i in range(HEIGHT):
-        for j in range(WIDTH):
-
-            # Отрисовываем наши клеточки
-            pygame.draw.rect(screen, (170, 170, 170),
-                             (MARGIN * (j + 1) + CELL_SIZE * j,
-                              MARGIN * (i + 1) + CELL_SIZE * i,
-                              CELL_SIZE, CELL_SIZE))
-
-
-# Функция для заливки наших клеточек цветом и записи чисел
-def filling_cells(screen, mapa, x, y, place):
-
-    # Закрашиваем клеточки и записываем числа
-    if cell_number(x, y) not in place:
-        pygame.draw.rect(screen, COLORS.get(mapa[x][y]),
-                         (MARGIN * (y + 1) + CELL_SIZE * y,
-                          MARGIN * (x + 1) + CELL_SIZE * x,
-                          CELL_SIZE, CELL_SIZE))
-        font = pygame.font.Font(None, 40)
-        text = font.render(f'{mapa[x][y]}', True, (0, 0, 0))
-        text_x = MARGIN * (x + 1) + CELL_SIZE * x
-        text_y = MARGIN * (y + 1) + CELL_SIZE * y
-        screen.blit(text, (text_y, text_x))
-
-    else:
-        pygame.draw.rect(screen, (170, 170, 170),
-                         (MARGIN * (y + 1) + CELL_SIZE * y,
-                          MARGIN * (x + 1) + CELL_SIZE * x,
-                          CELL_SIZE, CELL_SIZE))
+    screen.fill(SCREEN_COLOR)
+    for i in range(CELLS_COUNT):
+        for j in range(CELLS_COUNT):
+            text = pygame.font.Font(None, 30).render(f'{mapa[i][j]}', True, (0, 0, 0))
+            x = j * CELL_SIZE + (j + 1) * MARGIN
+            y = i * CELL_SIZE + (i + 1) * MARGIN
+            pygame.draw.rect(screen, COLORS[mapa[i][j]], (x, y, CELL_SIZE, CELL_SIZE))
+            if mapa[i][j] != 0:
+                text_w, text_h = text.get_width(), text.get_height()
+                text_x = x + (CELL_SIZE - text_w) // 2
+                text_y = y + (CELL_SIZE - text_h) // 2
+                screen.blit(text, (text_x, text_y))
 
 
 # Функции для болеее удобного вывода в консоль и дальнейшей работы:
@@ -109,6 +92,7 @@ def filling_with_nums(mapa, x, y):
 
     # Помещаем наше число на поле по индексу
     mapa[x][y] = val
+    render(screen)
     return mapa
 
 
@@ -118,7 +102,7 @@ def move_left(mapa):
     # Проверяем каждый символ в строке на то, является ли он нулём
     for line in mapa:
 
-        # Удаляем все нуля
+        # Удаляем все нули
         while 0 in line:
             line.remove(0)
 
@@ -126,17 +110,41 @@ def move_left(mapa):
         while len(line) != 4:
             line.append(0)
 
-    # Проверяем находящиеся рядом элемента на схожесть
+    # Проверяем находящиеся рядом элементы на схожесть
     for i in range(4):
         for j in range(3):
             if mapa[i][j] == mapa[i][j + 1] and mapa[i][j] != 0:
 
-                # Складываем элементы и удаляем второй из них, чтобы освободить место
+                # Складываем элементы и удаляем тот, что справа, чтобы освободить место
                 mapa[i][j] *= 2
                 del mapa[i][j + 1]
 
                 # Добавляем ноль, чтобы заполнить строку
                 mapa[i].append(0)
+    return mapa
+
+
+# Функция для сдвига всего вправо
+def move_right(mapa):
+    for line in mapa:
+        while 0 in line:
+            line.remove(0)
+
+        # Сдвинув всё вправо, мы добавляем в начало нули при необходимости
+        while len(line) != 4:
+            line.insert(0, 0)
+
+    # Проверяем находящиеся рядом элементы на схожесть
+    for i in range(4):
+        for j in range(3, 0, -1):
+            if mapa[i][j] == mapa[i][j - 1] and mapa[i][j] != 0:
+
+                # Складываем элементы и удаляем тот, что слева, чтобы освободить место
+                mapa[i][j] *= 2
+                del mapa[i][j - 1]
+
+                # Добавляем ноль, чтобы заполнить строку
+                mapa[i].insert(0, 0)
     return mapa
 
 
@@ -198,45 +206,37 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if not started:
-
-                    # Отрисовываем наше поле
-                    screen.fill(SCREEN_COLOR)
-                    render(screen)
                 if event.key == pygame.K_SPACE:
                     started = True
-                if started:
-
-                    # Узнаём, какие клеки пустые
-                    place = get_free_place(mapa)
-
-                    # Перемешиваем информацию в place,
-                    # чтобы числа появлялись на рандомных местах
-                    random.shuffle(place)
-
-                    # Присваиваем переменной рандомное число и
-                    # удаляем этот порядковый номер из свободного места
-                    rand_num = place.pop()
-
-                    # Находим индекс в нашел списке,
-                    # по которому будет располагаться наше число
-                    x, y = cell_index(rand_num)
-
-                    # Помещаем наше число на поле
-                    mapa = filling_with_nums(mapa, x, y)
-                    pprint(mapa)
-
-                    # Обновляем поле
-                    filling_cells(screen, mapa, x, y, place)
-                # Для удобства изначально я выводил всё в консоль,
-                # Это останется, чтобы искать ошибки
-                if event.key == pygame.K_w:
+                elif event.key == pygame.K_w:
                     pass
                 elif event.key == pygame.K_s:
                     pass
                 elif event.key == pygame.K_a:
                     mapa = move_left(mapa)
                 elif event.key == pygame.K_d:
-                    pass
+                    mapa = move_right(mapa)
+                # Узнаём, какие клеки пустые
+                place = get_free_place(mapa)
+
+                # Перемешиваем информацию в place,
+                # чтобы числа появлялись на рандомных местах
+                random.shuffle(place)
+
+                # Присваиваем переменной рандомное число и
+                # удаляем этот порядковый номер из свободного места
+                rand_num = place.pop()
+
+                # Находим индекс в нашел списке,
+                # по которому будет располагаться наше число
+                x, y = cell_index(rand_num)
+
+                # Помещаем наше число на поле
+                mapa = filling_with_nums(mapa, x, y)
+
+                # Отрисовываем наше поле
+                render(screen)
+                pprint(mapa)
+                print(get_free_place(mapa))
         clock.tick(60)
         pygame.display.flip()
