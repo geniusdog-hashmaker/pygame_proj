@@ -24,10 +24,10 @@ COLORS = {0: (170, 170, 170),
 SCREEN_COLOR = (215, 189, 140)
 
 # Это наше поле в виде списка
-mapa = [[0, 4, 0, 0],
-        [2, 0, 0, 2],
-        [0, 0, 0, 4],
-        [0, 0, 2, 0]]
+mapa = [[0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]]
 
 
 # Функция для отрисовки поля
@@ -99,10 +99,9 @@ def filling_with_nums(mapa, x, y):
 # Функция для сдвига всего влево
 def move_left(mapa):
 
-    # Переменные для определения того, надо ли добавлять новую клетку
-    appended_zeroes = 0
-    can_sum = 0
-    can_move = False
+    # Эти переменные нужны для определения возможности хода
+    zeroes = False
+    sum = False
 
     # Проверяем каждый символ в строке на то, является ли он нулём
     for line in mapa:
@@ -114,7 +113,7 @@ def move_left(mapa):
         # Сдвинув всё влево, мы добавляем в конец нули при необходимости
         while len(line) != 4:
             line.append(0)
-            appended_zeroes = 1
+            zeroes = True
 
     # Проверяем находящиеся рядом элементы на схожесть
     for line in range(4):
@@ -124,20 +123,20 @@ def move_left(mapa):
                 # Складываем элементы и удаляем тот, что справа, чтобы освободить место
                 mapa[line][sym] *= 2
                 del mapa[line][sym + 1]
-                can_sum = 1
+                sum = True
 
                 # Добавляем ноль, чтобы заполнить строку
                 mapa[line].append(0)
-    if appended_zeroes == 1 or can_sum == 1:
-        can_move = True
+
+    can_move = True if sum or zeroes else False
     return mapa, can_move
 
 
 # Функция для сдвига всего вправо
 def move_right(mapa):
-    inserted_zeroes = 0
-    can_sum = 0
-    can_move = False
+    zeroes = False
+    sum = False
+
     for line in mapa:
         while 0 in line:
             line.remove(0)
@@ -145,7 +144,7 @@ def move_right(mapa):
         # Сдвинув всё вправо, мы добавляем в начало нули при необходимости
         while len(line) != 4:
             line.insert(0, 0)
-            inserted_zeroes = 1
+            zeroes = True
 
     # Проверяем находящиеся рядом элементы на схожесть
     for line in range(4):
@@ -155,53 +154,77 @@ def move_right(mapa):
                 # Складываем элементы и удаляем тот, что слева, чтобы освободить место
                 mapa[line][sym] *= 2
                 del mapa[line][sym - 1]
-                can_sum = 1
+                sum = True
 
                 # Добавляем ноль, чтобы заполнить строку
                 mapa[line].insert(0, 0)
-    if inserted_zeroes == 1 or can_sum == 1:
-        can_move = True
+
+    can_move = True if sum or zeroes else False
     return mapa, can_move
 
 
 # Функция для сдвига всего вниз
 def move_down(mapa):
-    can_move = False
-
-    # Попробуй преобразовать список так, чтобы столбцы стаои строками и наоборот,
-    # а потом пытаться что-то менять, как в прошлых функциях. Потом снова привести
-    # к тому виду, от которого ушёл
+    zeroes = False
+    sum = False
 
     # Так мы сдвинем всё вниз, избавившись от нулей
-    for sym in range(4):
-        for line in range(3, 0, -1):
-            if mapa[line][sym] == 0:
-                if mapa[line - 1][sym] != 0:
+    for _ in range(3):
+        for sym in range(4):
+            for line in range(3, 0, -1):
+                if mapa[line][sym] == 0 and mapa[line - 1][sym] != 0:
                     mapa[line][sym] = mapa[line - 1][sym]
                     mapa[line - 1][sym] = 0
-                can_move = True
+                    zeroes = True
 
     # Сложим значения близлижащих клеток
     for sym in range(4):
         for line in range(3, 0, -1):
             if mapa[line][sym] == mapa[line - 1][sym]:
-                can_move = True
                 mapa[line][sym] *= 2
                 mapa[line - 1][sym] = 0
+                sum = True
 
-    for sym in range(3):
-        for line in range(4):
-            if mapa[line][sym] != 0 and mapa[line + 1][sym] == 0:
-                mapa[line + 1][sym] = mapa[line][sym]
-                mapa[line][sym] = 0
-                can_move = True
+    for sym in range(4):
+        for line in range(3, 0, -1):
+            if mapa[line][sym] == 0 and mapa[line - 1][sym] != 0:
+                mapa[line][sym] = mapa[line - 1][sym]
+                mapa[line - 1][sym] = 0
 
+    can_move = True if sum or zeroes else False
     return mapa, can_move
 
 
 # Функция для сдвига всего вверх
 def move_up(mapa):
-    return
+    zeroes = False
+    sum = False
+
+    # Так мы сдвинем всё вверх, избавившись от нулей
+    for _ in range(3):
+        for sym in range(4):
+            for line in range(3):
+                if mapa[line][sym] == 0 and mapa[line + 1][sym] != 0:
+                    mapa[line][sym] = mapa[line + 1][sym]
+                    mapa[line + 1][sym] = 0
+                    zeroes = True
+
+    # Сложим значения близлижащих клеток
+    for sym in range(4):
+        for line in range(3):
+            if mapa[line][sym] == mapa[line + 1][sym]:
+                mapa[line][sym] *= 2
+                mapa[line + 1][sym] = 0
+                sum = True
+
+    for sym in range(4):
+        for line in range(3):
+            if mapa[line][sym] == 0 and mapa[line + 1][sym] != 0:
+                mapa[line][sym] = mapa[line + 1][sym]
+                mapa[line + 1][sym] = 0
+
+    can_move = True if sum or zeroes else False
+    return mapa, can_move
 
 
 # Эта функция отвечает за стартовый экран,
@@ -262,20 +285,22 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                can_move = False
                 if event.key == pygame.K_SPACE:
                     started = True
-                elif event.key == pygame.K_w:
-                    mapa, can_move = move_up(mapa)
-                elif event.key == pygame.K_s:
-                    mapa, can_move = move_down(mapa)
-                elif event.key == pygame.K_a:
-                    mapa, can_move = move_left(mapa)
-                elif event.key == pygame.K_d:
-                    mapa, can_move = move_right(mapa)
+                    can_move = True
+                if started:
+                    if event.key == pygame.K_w:
+                        mapa, can_move = move_up(mapa)
+                    elif event.key == pygame.K_s:
+                        mapa, can_move = move_down(mapa)
+                    elif event.key == pygame.K_a:
+                        mapa, can_move = move_left(mapa)
+                    elif event.key == pygame.K_d:
+                        mapa, can_move = move_right(mapa)
+                    if can_move:
 
-                # Узнаём, какие клеки пустые
-                place = get_free_place(mapa)
+                        # Узнаём, какие клеки пустые
+                        place = get_free_place(mapa)
 
                 # Перемешиваем информацию в place,
                 # чтобы числа появлялись на рандомных местах
@@ -289,9 +314,10 @@ if __name__ == '__main__':
                 # по которому будет располагаться наше число
                 x, y = cell_index(rand_num)
 
-                # Помещаем наше число на поле, если клетки сдвигаются
-                if can_move:
-                    mapa = filling_with_nums(mapa, x, y)
+                        # Помещаем наше число на поле, если ход совершён
+                        mapa = filling_with_nums(mapa, x, y)
+                    else:
+                        started = False
 
                 # Отрисовываем наше поле
                 render(screen)
