@@ -185,6 +185,7 @@ def move_down(mapa):
                 mapa[line - 1][sym] = 0
                 sum = True
 
+    # Снова уберём появившиеся нули
     for sym in range(4):
         for line in range(3, 0, -1):
             if mapa[line][sym] == 0 and mapa[line - 1][sym] != 0:
@@ -217,6 +218,7 @@ def move_up(mapa):
                 mapa[line + 1][sym] = 0
                 sum = True
 
+    # Снова уберём появившиеся нули
     for sym in range(4):
         for line in range(3):
             if mapa[line][sym] == 0 and mapa[line + 1][sym] != 0:
@@ -259,6 +261,10 @@ def start_screen():
         else:
             screen.blit(text1, (text_x1, text_y1 + 30))
 
+
+# Эта функция выведет эран завершения
+def game_over():
+    pass
 
 
 if __name__ == '__main__':
