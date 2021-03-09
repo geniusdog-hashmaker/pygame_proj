@@ -277,8 +277,12 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     running = True
 
-    # Эта переменная нужно, чтобы понять, надо ли изменять поле
+    # Эта переменная нужна, чтобы понять, надо ли изменять поле
     started = None
+
+    # Ставим 2 стартовых числа
+    filling_with_nums(mapa, random.choice([i for i in range(4)]),
+                      random.choice([i for i in range(4)]))
 
     # Вызываем функцию для отрисовки начального экрана
     start_screen()
@@ -309,26 +313,28 @@ if __name__ == '__main__':
                         # Узнаём, какие клеки пустые
                         place = get_free_place(mapa)
 
-                # Перемешиваем информацию в place,
-                # чтобы числа появлялись на рандомных местах
-                random.shuffle(place)
+                        # Перемешиваем информацию в place,
+                        # чтобы числа появлялись на рандомных местах
+                        random.shuffle(place)
 
-                # Присваиваем переменной рандомное число и
-                # удаляем этот порядковый номер из свободного места
-                rand_num = place.pop()
+                        # Присваиваем переменной рандомное число и
+                        # удаляем этот порядковый номер из свободного места
+                        rand_num = place.pop()
 
-                # Находим индекс в нашел списке,
-                # по которому будет располагаться наше число
-                x, y = cell_index(rand_num)
+                        # Находим индекс в нашел списке,
+                        # по которому будет располагаться наше число
+                        x, y = cell_index(rand_num)
 
                         # Помещаем наше число на поле, если ход совершён
                         mapa = filling_with_nums(mapa, x, y)
                     else:
                         started = False
 
-                # Отрисовываем наше поле
-                render(screen)
-                pprint(mapa)
-                print(get_free_place(mapa))
+                    # Отрисовываем наше поле
+                    render(screen)
+                    pprint(mapa)
+                    print(get_free_place(mapa))
+                else:
+                    game_over()
         clock.tick(60)
         pygame.display.flip()
