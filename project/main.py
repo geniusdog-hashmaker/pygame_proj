@@ -260,6 +260,7 @@ def start_screen():
             screen.blit(text1, (text_x1, text_y1 + 30))
 
 
+
 if __name__ == '__main__':
 
     # Инициализируем пайгейм, создаём окно и пишем заголовок
